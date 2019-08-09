@@ -80,7 +80,7 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
                                 }
                                 select = -1;
                                 toatleDeration = videoName.get(position).getDuration();
-                                holder.mVideoName.setText(videoName.get(position).getVideoName());
+                                holder.mLengthText.setText(videoName.get(position).getDuration() / 1000 + "s");
                             }
                         }
                     };
@@ -99,10 +99,22 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
                             thread.exit();
                             thread = null;
                         }
-                        select = -1;
                         toatleDeration = videoName.get(position).getDuration();
-                        holder.mVideoName.setText(videoName.get(position).getVideoName());
+                        holder.mLengthText.setText(videoName.get(position).getDuration() / 1000 + "s");
+                        select = -1;
                     } else {
+                        if (mPlayer != null) {
+                            mPlayer.release();
+                            mPlayer = null;
+                        }
+                        if (thread != null) {
+                            thread.exit();
+                            thread = null;
+                        }
+                        toatleDeration = videoName.get(position).getDuration();
+                        if (select != -1) {
+                            holder.mLengthText.setText(videoName.get(select).getDuration() / 1000 + "s");
+                        }
                         mAnimationDrawable = (AnimationDrawable) holder.mVoiceImg.getBackground();
                         mAnimationDrawable.start();
                         mPlayer = new MediaPlayer();
@@ -134,8 +146,6 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
         public void run() {
             while (running) {
                 try {
-                    Thread.sleep(1000);
-                    toatleDeration -= 1000;
                     if (toatleDeration < 0) {
                         Message message = new Message();
                         message.arg1 = (int) (temp / 1000);
@@ -148,6 +158,8 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
                         message.obj = true;
                         handler.sendMessage(message);
                     }
+                    toatleDeration -= 1000;
+                    Thread.sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
