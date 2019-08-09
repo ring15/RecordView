@@ -6,6 +6,8 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -15,6 +17,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -80,7 +84,11 @@ public class AudioRecorderManager {
      */
     private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
+    private int toatleTime = 0;
+
     private static AudioRecorderManager mRecorderManager;
+
+    private Handler mHandler;
 
     private AudioRecorderManager() {
 
@@ -124,18 +132,10 @@ public class AudioRecorderManager {
     }
 
     /**
-     * 获取AudioRecord当前的录音状态
-     *
-     * @return 录音状态
-     */
-    public int getRecordingState() {
-        return status;
-    }
-
-    /**
      * 开始录制
      */
-    public void startRecording() {
+    public void startRecording(Handler handler) {
+        mHandler = handler;
         if (status == ACTION_INVALID || TextUtils.isEmpty(fileName)) {
             throw new IllegalStateException("请检查录音权限");
         }
@@ -143,6 +143,9 @@ public class AudioRecorderManager {
             throw new IllegalStateException("正在录音");
         }
         audioRecord.startRecording();
+        if (mObtainDecibelThread != null){
+            mObtainDecibelThread.begin();
+        }
         cachedThreadPool.execute(new Runnable() {
             @Override
             public void run() {
@@ -157,6 +160,9 @@ public class AudioRecorderManager {
         } else {
             audioRecord.stop();
             status = ACTION_PAUSE_RECORD;
+            if (mObtainDecibelThread != null){
+                mObtainDecibelThread.pause();
+            }
         }
     }
 
@@ -169,6 +175,7 @@ public class AudioRecorderManager {
         } else {
             audioRecord.stop();
             status = ACTION_STOP_RECORD;
+            toatleTime = 0;
             realese();
         }
     }
@@ -200,6 +207,11 @@ public class AudioRecorderManager {
             audioRecord.release();
             audioRecord = null;
         }
+
+        if (mObtainDecibelThread != null){
+            mObtainDecibelThread.exit();
+            mObtainDecibelThread = null;
+        }
         status = ACTION_INVALID;
     }
 
@@ -230,9 +242,8 @@ public class AudioRecorderManager {
      * 将音频信息写入文件，io操作，放在其他线程中
      */
     private void writeDataToFile() {
-        byte[] audioData = new byte[bufferSizeInBytes];
+        final byte[] audioData = new byte[bufferSizeInBytes];
         FileOutputStream fileOutputStream = null;
-        int readSize = 0;
         String currentFileName = fileName;
         if (status == ACTION_PAUSE_RECORD) {
             //假如是暂停录音，将文件名后面加个数字，防止重名文件内容被覆盖
@@ -252,8 +263,14 @@ public class AudioRecorderManager {
         //将录音状态设置为正在录音状态
         status = ACTION_START_RECORD;
         while (status == ACTION_START_RECORD) {
-            readSize = audioRecord.read(audioData, 0, bufferSizeInBytes);
+            final int readSize = audioRecord.read(audioData, 0, bufferSizeInBytes);
             if (AudioRecord.ERROR_INVALID_OPERATION != readSize && fileOutputStream != null) {
+                mAudioData = audioData;
+                mReadSize = readSize;
+                if (mObtainDecibelThread == null){
+                    mObtainDecibelThread = new ObtainDecibelThread();
+                    mObtainDecibelThread.start();
+                }
                 try {
                     fileOutputStream.write(audioData);
                 } catch (IOException e) {
@@ -269,5 +286,62 @@ public class AudioRecorderManager {
             e.printStackTrace();
         }
     }
+
+    private byte[] mAudioData = new byte[bufferSizeInBytes];
+    private int mReadSize;
+    private ObtainDecibelThread mObtainDecibelThread;
+
+    /**
+     * 监听录音声音频率大小
+     */
+    private class ObtainDecibelThread extends Thread {
+
+        private volatile boolean running = true;
+        private volatile boolean pause = false;
+
+        public void exit() {
+            running = false;
+        }
+
+        public void begin() {
+            pause = false;
+        }
+        public void pause() {
+            pause = true;
+        }
+
+        @Override
+        public void run() {
+            while (running) {
+                if (!pause){
+                    try {
+                        Thread.sleep(100);
+                        toatleTime += 1;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    long v = 0;
+                    for (int i = 0; i < mAudioData.length; i++){
+                        v += mAudioData[i] * mAudioData[i];
+                    }
+                    if (mReadSize != 0){
+                        //平方和除以数据总长度，得到音量大小
+                        double mean = v / mReadSize;
+                        double volume = 10 * Math.log10(mean);
+                        if (mHandler != null){
+                            Message message = new Message();
+                            message.arg1 = (int) volume;
+                            message.arg2 = toatleTime;
+                            mHandler.sendMessage(message);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+
 
 }
