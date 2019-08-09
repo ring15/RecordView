@@ -1,13 +1,6 @@
 package com.founq.sdk.recordview;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.media.MediaRecorder;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -15,6 +8,9 @@ import android.os.Message;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.founq.sdk.recordview.widget.VoiceLineView;
 
@@ -37,6 +33,7 @@ public class MediaRecorderActivity extends AppCompatActivity {
     private int toatleTime = 0;
 
     private ObtainDecibelThread mThread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,7 +113,7 @@ public class MediaRecorderActivity extends AppCompatActivity {
             if (isStart) {//这个是一个判断是否要录音的标志，可忽略
                 mMediaRecorder.start();//开始录音
                 isCreate = true;//这个是一个判断录音是否开始的标志
-                if (mThread == null){
+                if (mThread == null) {
                     mThread = new ObtainDecibelThread();//开启线程，用来获取录音信息，包括录音时长、分贝
                     mThread.start();
                 }
@@ -173,6 +170,7 @@ public class MediaRecorderActivity extends AppCompatActivity {
 
     /**
      * 释放所有资源
+     *
      * @param release
      */
     private void stopRecorder(boolean release) {
@@ -183,7 +181,7 @@ public class MediaRecorderActivity extends AppCompatActivity {
             }
             isCreate = false;
         }
-        if (mThread != null){
+        if (mThread != null) {
             mThread.exit();
             mThread = null;
         }
@@ -212,7 +210,7 @@ public class MediaRecorderActivity extends AppCompatActivity {
                 int minute = time / 60;
                 int second = time % 60;
                 showTime = "00:" + (minute < 10 ? ("0" + minute) : minute) + ":" + (second < 10 ? ("0" + second) : second);
-            } else{
+            } else {
                 int hour = time / 3600;
                 int temp = time % 3600;
                 int minute = temp / 60;
@@ -231,7 +229,7 @@ public class MediaRecorderActivity extends AppCompatActivity {
             mMediaRecorder.release();
             isCreate = false;
         }
-        if (mThread != null){
+        if (mThread != null) {
             mThread.exit();
             mThread = null;
         }

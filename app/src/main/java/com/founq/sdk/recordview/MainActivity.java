@@ -1,10 +1,5 @@
 package com.founq.sdk.recordview;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,6 +8,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -56,15 +56,15 @@ public class MainActivity extends AppCompatActivity {
         File fileWav = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/audio/wav");
         File[] files = file.listFiles();
         File[] filesWav = fileWav.listFiles();
-        if (mVideoNames != null){
+        if (mVideoNames != null) {
             mVideoNames.clear();
         }
-        if (files != null){
-            for (int i = 0; i < files.length; i++){
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
                 String path = files[i].getAbsolutePath();
                 String[] paths = path.split("/");
-                if (paths.length > 0){
-                    if (paths[paths.length - 1].contains(".amr")){
+                if (paths.length > 0) {
+                    if (paths[paths.length - 1].contains(".amr")) {
                         Video video = new Video();
                         video.setDuration(getMediaDuration(path));
                         video.setVideoName(paths[paths.length - 1]);
@@ -74,12 +74,12 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        if (filesWav != null){
-            for (int i = 0; i < filesWav.length; i++){
+        if (filesWav != null) {
+            for (int i = 0; i < filesWav.length; i++) {
                 String path = filesWav[i].getAbsolutePath();
                 String[] paths = path.split("/");
-                if (paths.length > 0){
-                    if (paths[paths.length - 1].contains(".wav") ){
+                if (paths.length > 0) {
+                    if (paths[paths.length - 1].contains(".wav")) {
                         Video video = new Video();
                         video.setDuration(getMediaDuration(path));
                         video.setVideoName(paths[paths.length - 1]);
@@ -93,12 +93,12 @@ public class MainActivity extends AppCompatActivity {
         mAdepter.notifyDataSetChanged();
     }
 
-    private long getMediaDuration(String filePath){
+    private long getMediaDuration(String filePath) {
         long duration = 0;
         MediaMetadataRetriever metadataRetriever = new MediaMetadataRetriever();
         metadataRetriever.setDataSource(filePath);
         String durationStr = metadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-        if (durationStr != null){
+        if (durationStr != null) {
             duration = Long.parseLong(durationStr);
         }
         metadataRetriever.release();
@@ -122,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void onClick(View view){
-        switch (view.getId()){
+    public void onClick(View view) {
+        switch (view.getId()) {
             case R.id.btn_media_recorder:
                 startActivity(new Intent(MainActivity.this, MediaRecorderActivity.class));
                 break;

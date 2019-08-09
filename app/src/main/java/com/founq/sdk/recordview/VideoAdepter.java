@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -63,19 +62,19 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
             holder.mItem.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    handler = new Handler(){
+                    handler = new Handler() {
                         @Override
                         public void handleMessage(@NonNull Message msg) {
                             super.handleMessage(msg);
                             holder.mLengthText.setText(msg.arg1 + "s");
                             boolean running = (boolean) msg.obj;
-                            if (!running){
+                            if (!running) {
                                 if (mAnimationDrawable != null) {
                                     mAnimationDrawable.stop();
                                     mAnimationDrawable.selectDrawable(0);
                                 }
                                 //停止播放
-                                if (mPlayer != null){
+                                if (mPlayer != null) {
                                     mPlayer.release();
                                     mPlayer = null;
                                 }
@@ -92,11 +91,11 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
                     }
                     if (position == select) {
                         //停止播放
-                        if (mPlayer != null){
+                        if (mPlayer != null) {
                             mPlayer.release();
                             mPlayer = null;
                         }
-                        if (thread != null){
+                        if (thread != null) {
                             thread.exit();
                             thread = null;
                         }
@@ -123,26 +122,27 @@ public class VideoAdepter extends RecyclerView.Adapter<VideoAdepter.MyHolder> {
         }
     }
 
-    private class MyThread extends Thread{
+    private class MyThread extends Thread {
         private long temp = toatleDeration;
         private volatile boolean running = true;
 
-        public void exit(){
+        public void exit() {
             running = false;
         }
+
         @Override
         public void run() {
             while (running) {
                 try {
                     Thread.sleep(1000);
                     toatleDeration -= 1000;
-                    if (toatleDeration < 0){
+                    if (toatleDeration < 0) {
                         Message message = new Message();
                         message.arg1 = (int) (temp / 1000);
                         message.obj = false;
                         handler.sendMessage(message);
                         running = false;
-                    }else {
+                    } else {
                         Message message = new Message();
                         message.arg1 = (int) (toatleDeration / 1000);
                         message.obj = true;

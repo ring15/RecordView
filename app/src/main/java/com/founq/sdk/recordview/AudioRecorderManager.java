@@ -11,14 +11,11 @@ import android.os.Message;
 import android.text.TextUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -143,7 +140,7 @@ public class AudioRecorderManager {
             throw new IllegalStateException("正在录音");
         }
         audioRecord.startRecording();
-        if (mObtainDecibelThread != null){
+        if (mObtainDecibelThread != null) {
             mObtainDecibelThread.begin();
         }
         cachedThreadPool.execute(new Runnable() {
@@ -160,7 +157,7 @@ public class AudioRecorderManager {
         } else {
             audioRecord.stop();
             status = ACTION_PAUSE_RECORD;
-            if (mObtainDecibelThread != null){
+            if (mObtainDecibelThread != null) {
                 mObtainDecibelThread.pause();
             }
         }
@@ -208,7 +205,7 @@ public class AudioRecorderManager {
             audioRecord = null;
         }
 
-        if (mObtainDecibelThread != null){
+        if (mObtainDecibelThread != null) {
             mObtainDecibelThread.exit();
             mObtainDecibelThread = null;
         }
@@ -267,7 +264,7 @@ public class AudioRecorderManager {
             if (AudioRecord.ERROR_INVALID_OPERATION != readSize && fileOutputStream != null) {
                 mAudioData = audioData;
                 mReadSize = readSize;
-                if (mObtainDecibelThread == null){
+                if (mObtainDecibelThread == null) {
                     mObtainDecibelThread = new ObtainDecibelThread();
                     mObtainDecibelThread.start();
                 }
@@ -306,6 +303,7 @@ public class AudioRecorderManager {
         public void begin() {
             pause = false;
         }
+
         public void pause() {
             pause = true;
         }
@@ -313,7 +311,7 @@ public class AudioRecorderManager {
         @Override
         public void run() {
             while (running) {
-                if (!pause){
+                if (!pause) {
                     try {
                         Thread.sleep(100);
                         toatleTime += 1;
@@ -322,14 +320,14 @@ public class AudioRecorderManager {
                     }
 
                     long v = 0;
-                    for (int i = 0; i < mAudioData.length; i++){
+                    for (int i = 0; i < mAudioData.length; i++) {
                         v += mAudioData[i] * mAudioData[i];
                     }
-                    if (mReadSize != 0){
+                    if (mReadSize != 0) {
                         //平方和除以数据总长度，得到音量大小
                         double mean = v / mReadSize;
                         double volume = 10 * Math.log10(mean);
-                        if (mHandler != null){
+                        if (mHandler != null) {
                             Message message = new Message();
                             message.arg1 = (int) volume;
                             message.arg2 = toatleTime;
@@ -341,7 +339,6 @@ public class AudioRecorderManager {
         }
 
     }
-
 
 
 }
